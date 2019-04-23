@@ -1,0 +1,640 @@
+{% extends "post/layout.html" %}
+{% load humanize %}
+{% load post_extras %}
+{% load static %}
+
+{% block title %}
+{% if tag %}
+#{{ tag }} - ImageMatching
+{% else %}
+ImageMatching
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+<script type="text/javascript" src="/static/js/script.js"></script>
+
+<style>
+    #loading {
+
+	width: 100%;
+
+	height: 100%;
+
+	top: 0;
+
+	left: 0;
+
+	position: fixed;
+
+	display: block;
+
+	opacity: 0.8;
+
+	background: white;
+
+	z-index: 99;
+
+	text-align: center;
+
+}
+
+
+
+#loading > img {
+
+	position: absolute;
+
+	top: 50%;
+
+	left: 50%;
+
+	z-index: 100;
+
+}
+</style>
+
+<div class="modal modal-center fade" id="my80sizeCenterModal"tabindex="-1" role="dialog" aria-labelledby="my80sizeCenterModalLabel" data-back>
+        <div class="modal-dialog modal-80size modal-center" role="document">
+        <div class="modal-content modal-80size">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Register</h4>
+          </div>
+          <div class="modal-body">
+              <div class="form-container account-form-container" style="float: center; width: 700px; text-align: center;">
+                  <form class="form account-form" action="" method="post" enctype="multipart/form-data" style="background-color: #00ff0000" id="next">
+                    <div class="user-title">
+                      <h1 class="form-title">NEW IMAGE</h1>
+                    </div>
+                    <div class="preview">
+                      <div class="upload">
+                        <span class="preview-bg"></span>
+                        <p class="preview-title">포스트 이미지 추가</p>
+                        {% if post %}
+                        <p style="text-align: center;"><img id="img_id" src="{{ post.photo.url }}" style="width: 500px; height: 370px; object-fit: cover"></p>
+                        {% else %}
+                        <p style="text-align: center;"><img id="img_id" src="" style="width: 500px; height: 370px; object-fit: cover;"></p>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                      <input type="hidden" value="test" name="test">
+                    <input class="submit_btn" style="width: 100%;" type="submit" value="저장">
+                  </form>
+            </div>
+              <div id="loading">
+                  <img src="{% static 'images/6.gif' %}" alt="loading">
+              </div>
+            <script type="text/javascript">
+                    function upload_img(input) {
+                      if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+
+                        reader.onload = function (e) {
+                          $('#img_id').attr('src', e.target.result);
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                      }
+
+                      $(".preview-bg").remove();
+                      $(".preview-title").remove();
+                    }
+
+                    $("#id_photo").change(function(){
+                      upload_img(this);
+                    });
+
+                    $(document).on('click', '.upload', function(){
+                      $("#id_photo").click();
+                    });
+
+                    $('#id_photo').attr("required", true);
+
+                    $(document).ready(function() {
+                        $('#loading').hide();
+                        $('#next').submit(function(){
+                        $('#loading').show();
+
+                        return true;
+});
+
+});
+                </script>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+{% if follow_set %}
+<div class="search-header">
+  <h1 class="search-result-title">팔로우 목록</h1>
+</div>
+{% elif not posts and not tag %}
+    <header>
+	<div>
+		<div id="slider">
+			<ul>
+                {% for image in image_path %}
+                <li style="background-image: url({{ image }});"></li>
+                {% endfor %}
+			</ul>
+            <div class="header-content">
+            <div class="header-content-inner">
+                <h1>#TIAG #RAKUN #VINTAGE #HUMMINGSUPER #EVERFREE #DJ2 #A-LONDON #TOMSTYLE</h1>
+                <hr>
+                <h1>Click the below button to Register image!</h1>
+                {% if user.is_authenticated %}
+                  <a class="btn btn-primary btn-xl page-scroll"
+                        data-toggle="modal" data-target="#my80sizeCenterModal">Register</a>
+                  {% else %}
+                  <a  class="btn btn-primary btn-xl page-scroll" href="{% url 'login' %}"
+                      onclick="javascript:alert('로그인 후 등록해주세요');">Register</a>
+                  {% endif %}
+            </div>
+        </div>
+		</div>
+	</div>
+	<ul id="pagination" class="pagination" style="visibility: hidden">
+        {% for i in image_len %}
+            <li onclick="slideshow.pos({{ i }})">{{ i }}</li>
+        {% endfor %}
+	</ul>
+            <div>{{ image_path }}</div>
+            <script type="text/javascript">
+                var slideshow=new TINY.slider.slide('slideshow',{
+	            id:'slider',
+	            auto:3,
+	            resume:true,
+	            vertical:false,
+	            navid:'pagination',
+	            activeclass:'current',
+	            position:0
+                });
+            </script>
+    </header>
+
+   <section class="bg-primary" id="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 class="section-heading">어떤 의류가 마음에 드나요?</h2>
+                    <p class="text-faded">다양한 의류를 확인하실 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="no-padding" id="portfolio">
+        <div class="container-fluid">
+            <div class="row no-gutter" style="width: 1522px;">
+                {% for index in image_len %}
+                <div class="col-lg-4 col-sm-6" style="width: 507px; height: 400px;">
+                    <a class="portfolio-box" style="width: 507px; height: 400px;"
+                            data-toggle="modal" data-target="#my80sizeModal">
+                        <img src="{{ image_path|list_index:index }}" class="img-responsive" alt="" style="width: 507px; height: 400px;">
+                        <div class="portfolio-box-caption" style="width: 507px; height: 400px;">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    {{ image_brand|list_index:index }}
+                                </div>
+                                <div class="project-name">
+                                    {{ image_name|list_index:index }}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <!-- <div class="modal modal-center fade" id="my80sizeModal" tabindex="-1" role="dialog" aria-labelledby="my80sizeCenterModalLabel">
+                <div class="modal-dialog modal-80size modal-center" role="document">
+                <div class="modal-content modal-80size">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">이미지 정보</h4>
+                  </div>
+                  <div class="modal-body">
+
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+                  </div>
+                </div>
+              </div>
+            </div> -->
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <!-- <aside class="bg-dark" style="margin-top: 50px;">
+        <div class="container text-center">
+            <div class="call-to-action">
+                <h2>Free Download at Start Bootstrap!</h2>
+                <a href="#" class="btn btn-default btn-xl wow tada">Download Now!</a>
+            </div>
+        </div>
+    </aside> -->
+
+{% endif %}
+{% if tag %}
+<div class="search-header">
+  {% if not posts %}
+  <h1 class="search-result-title">#{{tag}}<br>태그 검색 결과가 없습니다.</h1>
+    <div class="hot-tag-list">
+    <h2 >인기 태그 리스트</h2>
+    {% for tag in tag_all|slice:":5" %}
+      <a href="/post/explore/tags/{{tag.name}}">#{{ tag.name }}</a>
+    {% endfor %}
+    </div>
+  {% else %}
+  <h1 class="search-result-title">#{{tag}} 검색결과</h1>
+  <span class="search-result-count">게시물 <span class="count">{{ posts.paginator.count|intcomma }}개 </span></span>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if posts %}
+    <header>
+	<div>
+		<div id="slider">
+			<ul>
+                {% for image in image_path %}
+                <li style="background-image: url({{ image }});"></li>
+                {% endfor %}
+			</ul>
+            <div class="header-content">
+            <div class="header-content-inner">
+                <h1>#TIAG #RAKUN #VINTAGE #HUMMINGSUPER #EVERFREE #DJ2 #A-LONDON #TOMSTYLE</h1>
+                <hr>
+                <h1>Click the below button to Register image!</h1>
+                {% if user.is_authenticated %}
+                  <a class="btn btn-primary btn-xl page-scroll"
+                        data-toggle="modal" data-target="#my80sizeCenterModal">Register</a>
+                  {% else %}
+                  <a  class="btn btn-primary btn-xl page-scroll" href="{% url 'login' %}"
+                      onclick="javascript:alert('로그인 후 등록해주세요');">Register</a>
+                  {% endif %}
+            </div>
+        </div>
+		</div>
+	</div>
+	<ul id="pagination" class="pagination" style="visibility: hidden">
+        {% for i in image_len %}
+            <li onclick="slideshow.pos({{ i }})">{{ i }}</li>
+        {% endfor %}
+	</ul>
+            <div>{{ image_path }}</div>
+            <script type="text/javascript">
+                var slideshow=new TINY.slider.slide('slideshow',{
+	            id:'slider',
+	            auto:3,
+	            resume:true,
+	            vertical:false,
+	            navid:'pagination',
+	            activeclass:'current',
+	            position:0
+                });
+            </script>
+    </header>
+   <section class="bg-primary" id="about" style="width: 1522px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 class="section-heading">어떤 의류가 마음에 드나요?</h2>
+                    <p class="text-faded">이미지를 클릭하면 정보를 확인하실 수 있습니다</p>
+                </div>
+            </div>
+        </div>
+    </section>
+<div style="width: 1522px;">
+    <div class="col four" style="float: left; width: 405px;">
+        <a href="#" class="btns btns-linkedin" style="text-decoration: none;">Input_Image</a>
+    </div>
+    <div class="col four" style="float: right; width: 1017px;">
+        <a href="#" class="btns btns-linkedin" style="text-decoration: none;">Output_Image</a>
+    </div>
+    <div class="col four" style="float: right; width: 100px;">
+        <a href="#" class="btns btns-linkedin" style="text-decoration: none;">|</a>
+    </div>
+</div>
+
+<div class="modal modal-center fade" id="my80sizeModal" tabindex="-1" role="dialog" aria-labelledby="my80sizeCenterModalLabel">
+<div class="modal-dialog modal-80size modal-center" role="document">
+<div class="modal-content modal-80size">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title"></h4>
+  </div>
+  <div class="modal-body">
+          <div style="margin-top: 50px; float: left;">
+          <img id="sample" src="" width="400" height="400">
+          </div>
+          <div style="float: left; margin-top: 50px; margin-left: 30px;">
+          <div class="name"></div>
+          <div class="price"> 가격 : </div>
+          <div class="color"> 색상 :  </div>
+        <div class="size"> 사이즈 : </div>
+          <a id="site" href="#" class="btns btns-dark" target="_blank" style="text-decoration: none; width: 300px;"></a>
+      </div>
+      </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+  </div>
+</div>
+</div>
+</div>
+
+{% for post in posts %}
+    <section class="no-padding" id="portfolio" style="margin-top: 50px;">
+        <div class="container-fluid">
+            <div class="row no-gutter" style="width: 1522px;">
+                <img src="{{ post.photo.url }}" alt="{{ post.author }}'s photo" height="800" width="400"
+                    style="float: left;">
+                    <div style="float: left; width: 200px; margin-top: 250px;">
+                        <h1>{{ labels|label_class:post.id }}</h1>
+                        <h1>{{ name|image_class:post.id }}</h1>
+                        <div style="margin-bottom: 50px;">이런 스타일의 상품은 어떠세요?</div>
+                    {% if post.author == user %}
+                      <form class="post-delete-form" action="{% url 'post:post_delete' post.pk %}" method="post">
+                        {% csrf_token %}
+                        <input class="post-delete btn btn-primary btn-xl page-scroll" type="submit" value="삭제" onclick="return confirm('정말 삭제하시겠습니까?')">
+                      </form>
+                    {% endif %}
+                    </div>
+                <!-- <div style="display: absolute;">이런 종류의 상품은 어떠세요?</div> -->
+                {% for key, values in result_imgs.items %}
+                    {% if post.id == key|string_to_integer %}
+                        {% for img_path in values %}
+                            <div class="col-lg-4 col-sm-6" style="width: 307px; height: 400px; float: right;">
+                                <a class="portfolio-box" style="width: 307px; height: 400px;"
+                                   onclick="show('{{ key|counter_info:forloop.counter0|name_init:result_info }}',
+                                   '{{ img_path }}',
+                                   '{{ key|counter_info:forloop.counter0|price_init:result_info }}',
+                                   '{{ key|counter_info:forloop.counter0|color_init:result_info }}',
+                                   '{{ key|counter_info:forloop.counter0|size_init:result_info }}',
+                                   '{{ key|counter_info:forloop.counter0|brand_init:result_info }}',
+                                   '{{ key|counter_info:forloop.counter0|site_init:result_info }}');">
+                                    <img src="{{ img_path }}" class="img-responsive" alt="" style="width: 307px; height: 400px;">
+                                    <div class="portfolio-box-caption" style="width: 307px; height: 400px;">
+                                        <div class="portfolio-box-caption-content">
+                                            <div class="project-category text-faded">
+                                                {{ key|counter_info:forloop.counter0|brand_init:result_info }}
+                                            </div>
+                                            <div class="project-name">
+                                                {{ key|counter_info:forloop.counter0|name_init:result_info }}
+                                            </div>
+                                        </div>
+                                        <script type="text/javascript">
+                                            function show(name, photo, price, color, size, brand, site) {
+                                                var img = document.getElementById('sample');
+                                                img.src = photo;
+                                                $(".modal-body #site").prop('href', site);
+                                                $(".modal-title").text(name);
+                                                $(".modal-body .name").text('상품명 : ' + name);
+                                                $(".modal-body .price").text('상품명 : ' + price);
+                                                $(".modal-body .color").text('색상 : ' + color);
+                                                $(".modal-body .size").text('사이즈 : ' + size);
+                                                $(".modal-body #site").text(brand);
+                                                $("#my80sizeModal").modal('show');
+                                            }
+                                        </script>
+                                    </div>
+                                </a>
+                            </div>
+                      {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                {% for key, values in google_imgs.items %}
+                    {% if post.id == key|string_to_integer %}
+                        {% for img_path in values %}
+                            <div class="col-lg-4 col-sm-6" style="width: 300px; height: 400px; float: right;">
+                                <a class="portfolio-box" style="width: 300px; height: 400px;"
+                                   onclick="show('{{ key|counter_info:forloop.counter0|name_init:google_info }}',
+                                   '{{ img_path }}',
+                                   '{{ key|counter_info:forloop.counter0|price_init:google_info }}',
+                                   '{{ key|counter_info:forloop.counter0|color_init:google_info }}',
+                                   '{{ key|counter_info:forloop.counter0|size_init:google_info }}',
+                                   '{{ key|counter_info:forloop.counter0|brand_init:google_info }}',
+                                   '{{ key|counter_info:forloop.counter0|site_init:google_info }}');">
+                                    <img src="{{ img_path }}" class="img-responsive" alt="" style="width: 300px; height: 400px;">
+                                    <div class="portfolio-box-caption" style="width: 300px; height: 400px;">
+                                        <div class="portfolio-box-caption-content">
+                                            <div class="project-category text-faded">
+                                                {{ key|counter_info:forloop.counter0|brand_init:google_info }}
+                                            </div>
+                                            <div class="project-name">
+                                                {{ key|counter_info:forloop.counter0|name_init:google_info }}
+                                            </div>
+                                        </div>
+                                        <script type="text/javascript">
+                                            function show(name, photo, price, color, size, brand, site) {
+                                                var img = document.getElementById('sample');
+                                                img.src = photo;
+                                                $(".modal-body #site").prop('href', site);
+                                                $(".modal-title").text(name);
+                                                $(".modal-body .name").text('상품명 : ' + name);
+                                                $(".modal-body .price").text('상품명 : ' + price);
+                                                $(".modal-body .color").text('색상 : ' + color);
+                                                $(".modal-body .size").text('사이즈 : ' + size);
+                                                $(".modal-body #site").text(brand);
+                                                $("#my80sizeModal").modal('show');
+                                            }
+                                        </script>
+                                    </div>
+                                </a>
+                            </div>
+                      {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endfor %}
+{% endif %}
+    <section id="contact" style="width: 1522px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 class="section-heading">Let's Get In Touch!</h2>
+                    <p>Ready to start your next project with us? That's great! Give us a call or send us an email and we will get back to you as soon as possible!</p>
+                </div>
+                <div class="col-lg-4 col-lg-offset-2 text-center">
+                    <i class="fa fa-phone fa-3x wow bounceIn"></i>
+                    <p>010-5180-7273</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <i class="fa fa-envelope-o fa-3x wow bounceIn" data-wow-delay=".1s"></i>
+                    <p><a href="mailto:echosoul1994@naver.com">echosoul1994@naver.com</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+<!--{% for post in posts %}
+    <section class="no-padding" id="portfolio">
+        <div class="container-fluid">
+            <div class="row no-gutter" style="width: 1522px;">
+                {% for key, value in result_imgs.items %}
+                    {% if post.id == key %}
+                        {% for img_path in value %}
+                <div> {{ img_path }} </div>
+                <div class="col-lg-4 col-sm-6" style="width: 507px; height: 400px;">
+                    <a class="portfolio-box" style="width: 507px; height: 400px;"
+                            data-toggle="modal" data-target="#my80sizeModal">
+                        <img src="{{ image_path }}" class="img-responsive" alt="" style="width: 507px; height: 400px;">
+                        <div class="portfolio-box-caption" style="width: 507px; height: 400px;">
+                            <div class="portfolio-box-caption-content">
+                                <div class="project-category text-faded">
+                                    {{ image_brand|list_index:i }}
+                                </div>
+                                <div class="project-name">
+                                    {{ image_name|list_index:i }}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="modal modal-center fade" id="my80sizeModal" tabindex="-1" role="dialog" aria-labelledby="my80sizeCenterModalLabel">
+                <div class="modal-dialog modal-80size modal-center" role="document">
+                <div class="modal-content modal-80size">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">이미지 정보</h4>
+                  </div>
+                  <div class="modal-body">
+
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <aside class="bg-dark" style="margin-top: 50px;">
+        <div class="container text-center">
+            <div class="call-to-action">
+                <h2>Free Download at Start Bootstrap!</h2>
+                <a href="#" class="btn btn-default btn-xl wow tada">Download Now!</a>
+            </div>
+        </div>
+    </aside>
+
+{% for post in posts %}
+<article class="post-wrap">
+  <header>
+    <a class="user-title" href="{% url 'post:my_post_list' post.author.username %}">
+    {% if post.author.profile.picture %}
+    <img class="user-pic" src="{{ post.author.profile.picture.url }}" alt="프로필사진">
+    {% else %}
+    <img class="user-pic" src="{% static 'images/default/default.jpg' %}" alt="프로필사진">
+    {% endif %}
+    <span class="post-username">{{ post.author.profile.nickname  }}</span>
+    </a>
+    <span class="pull-right">
+      {% if user.profile in post.author.profile.get_follower %}
+      {# {% if post.author.profile in user_profile.follow_set.all %}#}
+      <input class="follow following-btn" type="submit" value="팔로잉" name="{{ post.author.profile.id }}">
+      {% else %}
+      <input class="follow follow-btn" type="submit" value="팔로우" name="{{ post.author.profile.id }}">
+      {% endif %}
+    </span>
+    {% if post.author == user %}
+    <span class=pull-right>
+      <a class="post-edit" href="{% url 'post:post_edit' post.pk %}">수정</a>
+      <form class="post-delete-form" action="{% url 'post:post_delete' post.pk %}" method="post">
+        {% csrf_token %}
+        <input class="post-delete" type="submit" value="삭제" onclick="return confirm('정말 삭제하시겠습니까?')">
+      </form>
+    </span>
+    {% endif %}
+  </header> {{ post.photo.url }}" alt="{{ post.author }}'s photo"
+  <div style="padding: 10px;">학습 이미지, 결과 이미지</div>
+  <p style="text-align: left;">
+  <img src="{{ post.photo.url }}" alt="{{ post.author }}'s photo" height="300" width="180"> 사진 등록하는 부분 db에 연동하여 가져온 것
+  {% for key, value in result_imgs.items %}
+    {% if post.id == key %}
+      {% for img_path in value %}
+        <button type="button" class="btn btn-primary" data-toggle="modal"
+                data-target="#my80sizeCenterModal" style="background-color: white; border: 0px;">
+          <img src="{{ img_path }}" height="300" width="180">
+        </button>
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  </p>
+
+  <div class="post-content">
+    {% if user in post.like_user_set.all %}
+    <input type="button" class="like liked" name="{{ post.id }}">
+    {% else %}
+    <input type="button" class="like to-like" name="{{ post.id }}">
+    {% endif %}
+    <input type="button" class="commnet-icon" name="{{ post.id }}">
+
+    <p class="like-count" id="count-{{ post.id }}">좋아요 {{ post.like_count }}개</p>
+
+    <p id="like-user-{{post.id}}">
+    {% if post.like_count != 0 %}
+      {% if post.like_user_set.all %}
+      {% for like_user in post.like_user_set.all %}
+      {{ like_user.profile.nickname }}
+      {% endfor %}
+      님이 좋아합니다.
+      {% endif %}
+    {% endif %}
+    </p>
+
+    <span class="post-username">{{ post.author.profile.nickname }}</span>
+    <span>{{ post|add_link|safe|linebreaksbr }}</span>
+
+    {% if post.comment_set.all.count > 4 %}
+    <input type="button" class="comment-more" name="{{ post.id }}" value="댓글 더 보기">
+    {% endif %}
+    <div id="comment-list-ajax-post{{post.id}}"></div>
+    {% for comment in post.comment_set.all|slice:":4" %}
+    <div id="comment{{ comment.id }}">
+
+      <span class="comment-username">{{ comment.author.profile.nickname }}</span> {{ comment.content }}
+      {% if user == comment.author %}
+      <input type="button" class="del-comment" value="삭제" name="{{ comment.id }}">
+      {% endif %}
+
+    </div>
+    {% endfor %}
+    <div id="comment-more-{{post.id}}"></div>
+
+    <div class="time">
+    {{ post.created_at|naturaltime }}
+    </div>
+    <div id="add-comment-post{{post.id}}" class="add-comment-wrap">
+    {% if user.is_authenticated %}
+      {{ comment_form }}
+      <input type="button" class="add-comment add-comment-btn" name="{{ post.id }}" value="게시">
+    {% else %}
+      {{ comment_form }}
+      <input type="button" class="add-comment-btn" name="{{ post.id }}" value="게시" onclick="alert('댓글을 작성하려면 로그인이 필요합니다.')">
+    {% endif %}
+    </div>
+  </div>
+  </article>
+{% endfor %} -->
+
+  <!-- <div id="post_list_ajax"></div>
+  <input id="page" type="hidden" value="2">
+
+  {% if posts.paginator.count > 4 %}
+  <button id="callmorepost" type="button">More Post</button>
+  {% endif %}
+
+  {% include "post/script_ajax.html" %} -->
+  {% endblock %}
