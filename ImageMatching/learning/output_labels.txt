@@ -1,9 +1,0 @@
-sweathers
-top
-shirts
-jacket
-slacks
-coat
-cardigan
-padding
-jeans
